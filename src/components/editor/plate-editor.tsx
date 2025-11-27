@@ -6,8 +6,8 @@ import { Plate, usePlateEditor } from 'platejs/react';
 import { EditorKit } from '@/components/editor/editor-kit';
 // import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
-import { FixedToolbar } from '@/components/ui/fixed-toolbar';
-import { FixedToolbarButtons } from '@/components/ui/fixed-toolbar-buttons';
+// import { FixedToolbar } from '@/components/ui/fixed-toolbar';
+// import { FixedToolbarButtons } from '@/components/ui/fixed-toolbar-buttons';
 
 interface PlateEditorProps {
   initialContent?: Value;
@@ -30,10 +30,6 @@ export function PlateEditor({ initialContent, onChange, readOnly }: PlateEditorP
 
   return (
     <Plate editor={editor} onChange={({ value }) => onChange?.(value)} readOnly={readOnly}>
-      <FixedToolbar>
-          <FixedToolbarButtons />
-      </FixedToolbar>
-
       <EditorContainer>
         <Editor variant="default" className="min-h-[500px] px-8 py-4" />
       </EditorContainer>
