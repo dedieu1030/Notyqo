@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Plate Notes – AI Editor",
+  "version": "1.0.0",
+  "description": "A powerful note-taking extension with AI capabilities.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "vite.svg",
+      "48": "vite.svg",
+      "128": "vite.svg"
+    }
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "vite.svg",
+    "48": "vite.svg",
+    "128": "vite.svg"
+  }
+}
+
