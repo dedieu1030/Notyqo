@@ -12,13 +12,30 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
 function App() {
-  const { loadFromStorage, createNote } = useNotesStore();
+  const { loadFromStorage, createNote, settings } = useNotesStore();
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadFromStorage();
   }, []);
+
+  // Handle Theme Change
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+
+    if (settings.theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+      root.classList.add(systemTheme);
+      return;
+    }
+
+    root.classList.add(settings.theme);
+  }, [settings.theme]);
 
   const handleNavigate = (view: View) => {
     setCurrentView(view);

@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ExternalLink, Save } from 'lucide-react';
 
 export default function PopupApp() {
-  const { createNote, loadFromStorage, error } = useNotesStore();
+  const { createNote, loadFromStorage, error, settings } = useNotesStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saved, setSaved] = useState(false);
@@ -14,6 +14,23 @@ export default function PopupApp() {
   useEffect(() => {
     loadFromStorage();
   }, []);
+
+  // Handle Theme Change
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+
+    if (settings.theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+      root.classList.add(systemTheme);
+      return;
+    }
+
+    root.classList.add(settings.theme);
+  }, [settings.theme]);
 
   const handleSave = async () => {
     if (!title.trim() && !content.trim()) return;
