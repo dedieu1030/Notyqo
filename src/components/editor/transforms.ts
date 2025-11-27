@@ -115,9 +115,10 @@ export const insertBlock = (
     }
 
     if (!isSameBlockType) {
-      editor.getApi(SuggestionPlugin).suggestion.withoutSuggestions(() => {
+        // Removed SuggestionPlugin logic as it was causing issues and isn't used
+      // editor.getApi(SuggestionPlugin).suggestion.withoutSuggestions(() => {
         editor.tf.removeNodes({ previousEmptyBlock: true });
-      });
+      // });
     }
   });
 };
@@ -206,3 +207,4 @@ export const getBlockType = (block: TElement) => {
 
   return block.type;
 };
+
