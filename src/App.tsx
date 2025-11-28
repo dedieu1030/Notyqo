@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar, type View } from "@/components/app-sidebar"
 import { HomeView } from "@/views/HomeView"
 import { FavoritesView } from "@/views/FavoritesView"
@@ -9,15 +9,23 @@ import { UpgradeView } from "@/views/UpgradeView"
 import { EditorView } from "@/views/EditorView"
 import { useNotesStore } from "@/hooks/useNotesStore"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
 
 function App() {
   const { loadFromStorage, createNote, settings } = useNotesStore();
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadFromStorage();
+    
+    // Check for noteId in query params (from Sidebar/Quick Note)
+    const params = new URLSearchParams(window.location.search);
+    const noteId = params.get('noteId');
+    if (noteId) {
+        setSelectedNoteId(noteId);
+    }
   }, []);
 
   // Handle Theme Change
@@ -55,41 +63,43 @@ function App() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar currentView={currentView} onNavigate={handleNavigate} />
-        
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <header className="flex items-center gap-2 border-b p-3">
-            <SidebarTrigger />
+      <AppSidebar 
+        currentView={currentView} 
+        onNavigate={handleNavigate} 
+        onNewNote={handleCreateNote}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+      <SidebarInset>
+        {/* Header logic: Show header always but customize content/style */}
+        <header className={`flex h-14 shrink-0 items-center gap-2 px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 ${selectedNoteId ? '' : 'border-b'}`}>
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
             {selectedNoteId ? (
-               <span className="text-sm font-medium text-muted-foreground">Edit Note</span>
+                 <Button variant="ghost" size="sm" onClick={() => setSelectedNoteId(null)} className="h-auto p-0 hover:bg-transparent font-medium">
+                    ← Back
+                 </Button>
             ) : (
-                <div className="flex items-center justify-between w-full">
-                    <span className="capitalize font-bold">{currentView}</span>
-                    {currentView === 'home' && (
-                        <Button size="sm" onClick={handleCreateNote}>
-                            <Plus className="mr-2 h-4 w-4" /> New Note
-                        </Button>
-                    )}
-                </div>
+                 <span className="capitalize font-bold">{currentView}</span>
             )}
-          </header>
-
-          <div className="flex-1 overflow-auto">
-            {selectedNoteId ? (
+          </div>
+        </header>
+        
+        <div className={`flex flex-1 flex-col ${selectedNoteId ? 'p-0' : 'p-4 pt-0'} h-[calc(100vh-3.5rem)] overflow-hidden`}>
+           {selectedNoteId ? (
               <EditorView noteId={selectedNoteId} onBack={() => setSelectedNoteId(null)} />
             ) : (
-              <>
-                {currentView === 'home' && <HomeView onOpenNote={handleOpenNote} />}
+              <div className="h-full overflow-auto">
+                {currentView === 'home' && <HomeView onOpenNote={handleOpenNote} searchQuery={searchQuery} />}
                 {currentView === 'favorites' && <FavoritesView onOpenNote={handleOpenNote} />}
                 {currentView === 'trash' && <TrashView />}
                 {currentView === 'settings' && <SettingsView />}
                 {currentView === 'upgrade' && <UpgradeView />}
-              </>
+              </div>
             )}
-          </div>
-        </main>
-      </div>
+        </div>
+      </SidebarInset>
     </SidebarProvider>
   )
 }

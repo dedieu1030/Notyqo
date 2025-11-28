@@ -30,9 +30,9 @@ export function PlateEditor({ initialContent, onChange, readOnly }: PlateEditorP
 
   return (
     <Plate editor={editor} onChange={({ value }) => onChange?.(value)} readOnly={readOnly}>
-      {/* <FixedToolbar>
+      <FixedToolbar>
         <FixedToolbarButtons />
-      </FixedToolbar> */}
+      </FixedToolbar>
 
       <EditorContainer>
         <Editor variant="default" className="min-h-[500px] px-8 py-4" />

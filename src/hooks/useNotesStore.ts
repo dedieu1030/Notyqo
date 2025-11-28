@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 import type { Note, NotesStore, Settings, NoteContent } from '@/lib/types';
 import { storageService } from '@/lib/storage';
 
@@ -37,32 +37,40 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
   },
 
   createNote: async (title: string, content?: NoteContent) => {
-    const { notes, settings } = get();
-    
-    // Check Free Limit
-    const activeNotesCount = notes.filter(n => !n.isTrashed).length;
-    if (settings.plan === 'free' && activeNotesCount >= FREE_PLAN_LIMIT) {
-      set({ error: 'Free limit reached. Upgrade to create more notes.' });
+    try {
+      const { notes, settings } = get();
+      
+      // Check Free Limit
+      const activeNotesCount = notes.filter(n => !n.isTrashed).length;
+      if (settings.plan === 'free' && activeNotesCount >= FREE_PLAN_LIMIT) {
+        const errorMsg = 'Free limit reached. Upgrade to create more notes.';
+        console.warn(errorMsg);
+        set({ error: errorMsg });
+        return null;
+      }
+
+      const newNote: Note = {
+        id: crypto.randomUUID(),
+        title: title || 'Untitled',
+        content: content || [{ type: 'p', children: [{ text: '' }] }], // Basic Plate Node
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isFavorite: false,
+        isTrashed: false,
+        templateId: settings.defaultTemplateId,
+      };
+
+      const updatedNotes = [newNote, ...notes];
+      set({ notes: updatedNotes, error: null });
+      
+      // Persist
+      await storageService.saveNotes(updatedNotes);
+      return newNote.id;
+    } catch (e) {
+      console.error('Error creating note:', e);
+      set({ error: 'Failed to create note' });
       return null;
     }
-
-    const newNote: Note = {
-      id: uuidv4(),
-      title: title || 'Untitled',
-      content: content || [{ type: 'p', children: [{ text: '' }] }], // Basic Plate Node
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isFavorite: false,
-      isTrashed: false,
-      templateId: settings.defaultTemplateId,
-    };
-
-    const updatedNotes = [newNote, ...notes];
-    set({ notes: updatedNotes, error: null });
-    
-    // Persist
-    await storageService.saveNotes(updatedNotes);
-    return newNote.id;
   },
 
   updateNote: async (id: string, updates: Partial<Note>) => {

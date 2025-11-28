@@ -15,12 +15,19 @@
       "128": "vite.svg"
     }
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_end"
+    }
+  ],
   "background": {
     "service_worker": "service-worker.js"
   },
   "web_accessible_resources": [
     {
-      "resources": ["index.html", "assets/*"],
+      "resources": ["index.html", "assets/*", "content-script.css"],
       "matches": ["<all_urls>"]
     }
   ],
@@ -30,4 +37,3 @@
     "128": "vite.svg"
   }
 }
-

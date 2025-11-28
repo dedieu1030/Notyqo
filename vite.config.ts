@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "is-hotkey": path.resolve(__dirname, "node_modules/is-hotkey/lib/index.js"),
     },
   },
   build: {
@@ -15,6 +16,21 @@ export default defineConfig({
         input: {
             main: path.resolve(__dirname, 'index.html'),
             popup: path.resolve(__dirname, 'popup.html'),
+            'content-script': path.resolve(__dirname, 'src/content/index.tsx'),
+        },
+        output: {
+            entryFileNames: (chunkInfo) => {
+                if (chunkInfo.name === 'content-script') {
+                    return 'content-script.js';
+                }
+                return 'assets/[name]-[hash].js';
+            },
+            assetFileNames: (assetInfo) => {
+                if (assetInfo.name && assetInfo.name === 'content-script.css') {
+                    return 'content-script.css';
+                }
+                return 'assets/[name]-[hash][extname]';
+            }
         }
     }
   }
