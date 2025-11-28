@@ -1,86 +1,98 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { MinimalEditor } from '@/components/editor/minimal-editor';
 import { useNotesStore } from '@/hooks/useNotesStore';
-import { cn } from '@/lib/utils';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const { createNote } = useNotesStore();
+  const { createNote, notes, error } = useNotesStore();
   const [currentNoteId, setCurrentNoteId] = useState<string | null>(null);
 
+  // Initialize a note if needed when opening (or finding latest active one)
   useEffect(() => {
-    const handleMessage = (request: any, sender: any, sendResponse: any) => {
-      if (request.action === 'TOGGLE_SIDEBAR') {
-        setIsOpen(prev => !prev);
-        // Send response to keep message channel open/confirm receipt if needed
-        if (sendResponse) sendResponse({ status: 'ok' });
-      }
-    };
+    // Find the most recent non-trashed note or create one
+    const activeNotes = notes.filter(n => !n.isTrashed).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     
-    // Use a more robust listener attachment
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-        chrome.runtime.onMessage.addListener(handleMessage);
-    }
-    
-    return () => {
-        if (typeof chrome !== 'undefined' && chrome.runtime) {
-            chrome.runtime.onMessage.removeListener(handleMessage);
+    // Only set default note if we don't have one or the current one is deleted
+    // OR if the list changed and we want to ensure we show something valid.
+    // But be careful not to override if we just created one?
+    // Actually, if we create one, it becomes the first in activeNotes.
+    // So this logic is generally safe for single-user synchronous flows.
+    if (activeNotes.length > 0) {
+        // Only switch if currentNoteId is not in the list (e.g. was trash) or null
+        // OR always switch to top? The "New" button relies on this auto-switch or manual set.
+        // If we just created a note, it's at [0].
+        // If we just opened the sidebar, we want [0].
+        // If we are editing [1] and a background sync happens? Unlikely in this local-first.
+        // Let's keep it simple: always sync to top note if current is invalid or we just loaded.
+        
+        // Optimization: Check if currentNoteId is still valid
+        const isCurrentValid = currentNoteId && activeNotes.find(n => n.id === currentNoteId);
+        
+        if (!isCurrentValid) {
+             setCurrentNoteId(activeNotes[0].id);
         }
-    };
-  }, []);
-
-  // Initialize a note if needed when opening
-  useEffect(() => {
-    if (isOpen && !currentNoteId) {
+    } else {
         const initNote = async () => {
             const id = await createNote('Quick Note');
             if (id) setCurrentNoteId(id);
         };
+        // Only init if we really have no notes and aren't loading?
+        // notes is [] initially.
         initNote();
     }
-  }, [isOpen]);
+  }, [notes.length, createNote]); // Removed currentNoteId from dependency to avoid loops
 
   const handleOpenFullApp = () => {
      if (currentNoteId) {
-         window.open(chrome.runtime.getURL(`index.html?noteId=${currentNoteId}`), '_blank');
+         chrome.tabs.create({ url: `index.html?noteId=${currentNoteId}` });
      } else {
-         window.open(chrome.runtime.getURL('index.html'), '_blank');
+         chrome.tabs.create({ url: 'index.html' });
      }
   };
 
-  // Don't render anything if not open (to save resources) or handle visibility via CSS?
-  // Using CSS translate is better for animation.
-  
+  const handleNewNote = async () => {
+      // Create note and explicitly set it
+      const id = await createNote('Quick Note');
+      if (id) {
+          setCurrentNoteId(id);
+      } else {
+          // If creation failed (limit reached), it might not change.
+          // Error is in store.
+          if (error) {
+              alert(error); // Simple alert for now since we are in sidebar
+          }
+      }
+  };
+
   return (
-    <div className={cn(
-        "fixed top-0 right-0 h-full w-[400px] bg-background border-l shadow-2xl transition-transform duration-300 ease-in-out z-[9999] flex flex-col font-sans text-foreground",
-        isOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
-    )}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <h2 className="font-semibold text-lg">Quick Note</h2>
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={handleOpenFullApp} title="Open in Full App">
-                    <ExternalLink className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-                    <X className="h-4 w-4" />
-                </Button>
+    <TooltipProvider>
+        <div className="h-screen w-full flex flex-col bg-background text-foreground">
+            {/* Header */}
+            <div className="flex items-center justify-between p-3 bg-background shrink-0 z-10">
+                <h2 className="font-semibold text-base">Quick Notes</h2>
+                <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={handleNewNote} title="New Note">
+                        + New
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleOpenFullApp} title="Open in Full App">
+                        <ExternalLink className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-auto px-3 pb-3">
+                {currentNoteId ? (
+                    <MinimalEditor noteId={currentNoteId} />
+                ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                        {error ? <span className="text-destructive">{error}</span> : "Loading..."}
+                    </div>
+                )}
             </div>
         </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-auto p-4 bg-background">
-            {currentNoteId ? (
-                <MinimalEditor noteId={currentNoteId} />
-            ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                    Loading...
-                </div>
-            )}
-        </div>
-    </div>
+    </TooltipProvider>
   );
 }

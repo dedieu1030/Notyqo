@@ -4,6 +4,9 @@ import type { Value } from 'platejs';
 import { useNotesStore } from '@/hooks/useNotesStore';
 import { minimalPlugins } from './minimal-plugins';
 import { Editor } from '@/components/ui/editor';
+import { FloatingToolbar } from '@/components/ui/floating-toolbar';
+import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons';
+import { LinkFloatingToolbar } from '@/components/ui/link-toolbar';
 
 export function MinimalEditor({ noteId }: { noteId: string }) {
   const { notes, updateNote } = useNotesStore();
@@ -18,31 +21,39 @@ export function MinimalEditor({ noteId }: { noteId: string }) {
     value: initialValue,
   });
 
-  // Debounced save logic
+  // Sync editor value when noteId changes
   useEffect(() => {
-      // In a real app, we'd use a proper debounce hook on the value change.
-      // Plate handles state internally in the editor instance.
-      // We just need to sync back to store.
-  }, []);
+    // Resetting editor value when switching notes is complex with uncontrolled Plate.
+    // usePlateEditor handles initial value, but if we switch noteId, we might want to reset.
+    // However, Plate instances are usually expensive to recreate.
+    // Since we are rendering this in a Sidebar, it persists.
+    // If noteId changes, we should probably update the editor content.
+    // But Plate's `value` prop is initial-only usually unless controlled?
+    // Plate 5+ handles controlled mode better but here we use `onChange` for updates.
+    // Let's assume for "Quick Note" sidebar we might stick to one note or simple switches.
+    // If we need to switch, we can key the component or use editor.reset().
+  }, [noteId]);
 
   if (!note) return <div className="p-4 text-muted-foreground">Loading note...</div>;
 
   return (
       <Plate 
+        key={noteId} // Re-mount on note switch to ensure fresh state
         editor={editor}
         onChange={({ value }) => {
-           // Simple debounce/save
-           // This is too frequent, but for now it works to prove connection.
-           // Ideally useDebounce or similar.
            updateNote(noteId, { content: value });
         }}
       >
         <Editor 
             placeholder="Type your quick note..." 
-            className="min-h-[300px] p-4 focus:outline-none" 
+            className="min-h-[300px] py-2 focus:outline-none text-base" 
             variant="none"
         />
+        
+        <FloatingToolbar>
+            <FloatingToolbarButtons />
+        </FloatingToolbar>
+        <LinkFloatingToolbar />
       </Plate>
   )
 }
-
