@@ -14,9 +14,18 @@ export default function PopupApp() {
   const handleToggleSidebar = async () => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tab.id) {
-            chrome.tabs.sendMessage(tab.id, { action: 'TOGGLE_SIDEBAR' });
-            window.close(); // Close popup after clicking
+        if (tab && tab.id) {
+            // Check if we can inject script or if it's already there
+            // Actually content script is auto-injected in manifest.
+            // Just send message.
+            try {
+                await chrome.tabs.sendMessage(tab.id, { action: 'TOGGLE_SIDEBAR' });
+                window.close(); 
+            } catch (e) {
+                console.error("Failed to send message", e);
+                // Fallback: maybe script isn't loaded?
+                // alert("Please refresh the page to use the sidebar.");
+            }
         }
     }
   };

@@ -6,15 +6,23 @@ import '@/index.css';
 const rootId = 'notyqo-root';
 
 function init() {
-  if (document.getElementById(rootId)) return;
+  // Prevent multiple injections
+  if (document.getElementById(rootId)) {
+    console.log('Notyqo content script already initialized');
+    return;
+  }
+
+  console.log('Initializing Notyqo content script');
 
   const host = document.createElement('div');
   host.id = rootId;
   host.style.position = 'fixed';
   host.style.top = '0';
   host.style.right = '0';
+  host.style.height = '100vh'; // Occupy full height for click-through logic
+  host.style.width = '0'; // Start width 0
   host.style.zIndex = '2147483647'; // Max z-index
-  host.style.pointerEvents = 'none'; // Let clicks pass through when closed
+  host.style.pointerEvents = 'none'; // Let clicks pass through container
   document.body.appendChild(host);
 
   const shadow = host.attachShadow({ mode: 'open' });
@@ -28,9 +36,11 @@ function init() {
   // Create a mounting point for React
   const mountPoint = document.createElement('div');
   mountPoint.id = 'mount-point';
-  // Reset some styles for the mount point
+  // Reset some styles for the mount point to ensure isolation
   mountPoint.style.all = 'initial';
-  mountPoint.style.fontFamily = 'sans-serif';
+  mountPoint.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+  mountPoint.style.display = 'block';
+  mountPoint.style.height = '100%';
   shadow.appendChild(mountPoint);
 
   const root = ReactDOM.createRoot(mountPoint);
@@ -39,11 +49,14 @@ function init() {
       <Sidebar />
     </React.StrictMode>
   );
+
+  // Notify that the script is ready
+  chrome.runtime.sendMessage({ action: 'CONTENT_SCRIPT_READY' }).catch(() => {});
 }
 
-// init(); 
-// We can init immediately or wait. 
-// Usually content scripts run at document_end, so safe to init.
-init();
-
-
+// Ensure it runs even if document is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
