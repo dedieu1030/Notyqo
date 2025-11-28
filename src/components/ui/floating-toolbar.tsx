@@ -1,11 +1,13 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 
 import {
   type FloatingToolbarState,
   flip,
   offset,
+  shift,
   useFloatingToolbar,
   useFloatingToolbarState,
 } from '@platejs/floating';
@@ -51,6 +53,7 @@ export function FloatingToolbar({
           ],
           padding: 12,
         }),
+        shift({ padding: 12 }),
       ],
       placement: 'top',
       ...state?.floatingOptions,
@@ -68,7 +71,7 @@ export function FloatingToolbar({
 
   if (hidden) return null;
 
-  return (
+  return createPortal(
     <div ref={clickOutsideRef}>
       <Toolbar
         {...props}
@@ -82,6 +85,7 @@ export function FloatingToolbar({
       >
         {children}
       </Toolbar>
-    </div>
+    </div>,
+    document.body
   );
 }

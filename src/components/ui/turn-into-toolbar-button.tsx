@@ -9,7 +9,6 @@ import { DropdownMenuItemIndicator } from '@radix-ui/react-dropdown-menu';
 import {
   CheckIcon,
   ChevronRightIcon,
-  Columns3Icon,
   FileCodeIcon,
   Heading1Icon,
   Heading2Icon,
@@ -118,11 +117,6 @@ export const turnIntoItems = [
     label: 'Quote',
     value: KEYS.blockquote,
   },
-  {
-    icon: <Columns3Icon />,
-    label: '3 columns',
-    value: 'action_three_columns',
-  },
 ];
 
 export function TurnIntoToolbarButton(props: DropdownMenuProps) {
@@ -154,7 +148,7 @@ export function TurnIntoToolbarButton(props: DropdownMenuProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="ignore-click-outside/toolbar min-w-0"
+        className="ignore-click-outside/toolbar min-w-0 max-h-[300px] overflow-y-auto"
         onCloseAutoFocus={(e) => {
           e.preventDefault();
           editor.tf.focus();

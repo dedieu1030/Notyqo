@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 
 import type { TLinkElement } from 'platejs';
 
@@ -8,6 +9,7 @@ import {
   type UseVirtualFloatingOptions,
   flip,
   offset,
+  shift,
 } from '@platejs/floating';
 import { getLinkAttributes } from '@platejs/link';
 import {
@@ -58,6 +60,7 @@ export function LinkFloatingToolbar({
           fallbackPlacements: ['bottom-end', 'top-start', 'top-end'],
           padding: 12,
         }),
+        shift({ padding: 12 }),
       ],
       placement:
         activeSuggestionId || activeCommentId ? 'top-start' : 'bottom-start',
@@ -77,6 +80,8 @@ export function LinkFloatingToolbar({
     props: insertProps,
     ref: insertRef,
     textInputProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    textInputProps: _textInputProps, // Unused variable warning workaround if needed, but we use textInputProps below
   } = useFloatingLinkInsert(insertState);
 
   const editState = useFloatingLinkEditState({
@@ -99,7 +104,7 @@ export function LinkFloatingToolbar({
   if (hidden) return null;
 
   const input = (
-    <div className="flex w-[330px] flex-col" {...inputProps}>
+    <div className="flex w-auto max-w-[calc(100vw-24px)] flex-col" {...inputProps}>
       <div className="flex items-center">
         <div className="flex items-center pr-1 pl-2 text-muted-foreground">
           <Link className="size-4" />
@@ -157,7 +162,7 @@ export function LinkFloatingToolbar({
     </div>
   );
 
-  return (
+  return createPortal(
     <>
       <div ref={insertRef} className={popoverVariants()} {...insertProps}>
         {input}
@@ -166,7 +171,8 @@ export function LinkFloatingToolbar({
       <div ref={editRef} className={popoverVariants()} {...editProps}>
         {editContent}
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 
