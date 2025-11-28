@@ -22,6 +22,7 @@ import { CodeBlockPlugin } from '@platejs/code-block/react';
 import { ListPlugin } from '@platejs/list/react';
 import { LinkPlugin } from '@platejs/link/react';
 import { TogglePlugin } from '@platejs/toggle/react';
+import { IndentPlugin } from '@platejs/indent/react';
 
 import { BlockquoteElement } from '@/components/ui/blockquote-node';
 import { CodeBlockElement } from '@/components/ui/code-block-node';
@@ -31,6 +32,7 @@ import { LinkElement } from '@/components/ui/link-node';
 import { ParagraphElement } from '@/components/ui/paragraph-node';
 import { ToggleElement } from '@/components/ui/toggle-node';
 import { KbdLeaf } from '@/components/ui/kbd-node';
+// import { TodoListElement } from '@/components/ui/todo-list-element';
 
 export const minimalPlugins = [
   // Nodes
@@ -45,7 +47,26 @@ export const minimalPlugins = [
   CodeBlockPlugin.withComponent(CodeBlockElement),
   LinkPlugin.withComponent(LinkElement),
   ListPlugin,
+  
   TogglePlugin.withComponent(ToggleElement),
+
+  // Functionality
+  IndentPlugin.extend({
+    inject: {
+      targetPlugins: [
+        ParagraphPlugin.key,
+        H1Plugin.key,
+        H2Plugin.key,
+        H3Plugin.key,
+        H4Plugin.key,
+        H5Plugin.key,
+        H6Plugin.key,
+        BlockquotePlugin.key,
+        CodeBlockPlugin.key,
+        TogglePlugin.key,
+      ],
+    },
+  }),
 
   // Marks
   BoldPlugin,
