@@ -46,7 +46,7 @@ export function MinimalEditor({ noteId }: { noteId: string }) {
       >
         <Editor 
             placeholder="Type your quick note..." 
-            className="min-h-[300px] py-2 focus:outline-none text-base" 
+            className="min-h-[300px] py-2 focus:outline-none text-base [&>:first-child]:mt-0" 
             variant="none"
         />
         
