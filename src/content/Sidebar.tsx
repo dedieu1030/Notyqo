@@ -6,7 +6,7 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default function Sidebar() {
-  const { createNote, notes, error } = useNotesStore();
+  const { createNote, deleteNote, notes, error } = useNotesStore();
   const [currentNoteId, setCurrentNoteId] = useState<string | null>(null);
 
   // Initialize a note if needed when opening (or finding latest active one)
@@ -53,6 +53,11 @@ export default function Sidebar() {
   };
 
   const handleNewNote = async () => {
+      // Delete current note if it exists (Quick Note behavior: clear/trash previous)
+      if (currentNoteId) {
+          await deleteNote(currentNoteId);
+      }
+
       // Create note and explicitly set it
       const id = await createNote('Quick Note');
       if (id) {
