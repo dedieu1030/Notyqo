@@ -94,12 +94,6 @@ export const turnIntoItems = [
     value: KEYS.ol,
   },
   {
-    icon: <SquareIcon />,
-    keywords: ['checklist', 'task', 'checkbox', '[]'],
-    label: 'To-do list',
-    value: KEYS.listTodo,
-  },
-  {
     icon: <ChevronRightIcon />,
     keywords: ['collapsible', 'expandable'],
     label: 'Toggle list',
