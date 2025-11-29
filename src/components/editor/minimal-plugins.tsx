@@ -45,7 +45,11 @@ export const minimalPlugins = [
   H6Plugin.withComponent(H6Element),
   BlockquotePlugin.withComponent(BlockquoteElement),
   CodeBlockPlugin.withComponent(CodeBlockElement),
-  LinkPlugin.withComponent(LinkElement),
+  LinkPlugin.withComponent(LinkElement).configure({
+    options: {
+      isUrl: (url) => true, // Allow any string as URL (no protocol enforcement)
+    },
+  }),
   ListPlugin,
   
   TogglePlugin.withComponent(ToggleElement),
