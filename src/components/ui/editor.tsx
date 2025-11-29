@@ -58,7 +58,8 @@ const editorVariants = cva(
     'relative w-full cursor-text select-text overflow-x-hidden whitespace-pre-wrap break-words',
     'rounded-md ring-offset-background focus-visible:outline-none',
     '**:data-slate-placeholder:!top-1/2 **:data-slate-placeholder:-translate-y-1/2 placeholder:text-muted-foreground/80 **:data-slate-placeholder:text-muted-foreground/80 **:data-slate-placeholder:opacity-100!',
-    '[&_strong]:font-bold'
+    '[&_strong]:font-bold',
+    '[&_ol]:list-decimal [&_ul]:list-disc'
   ),
   {
     defaultVariants: {

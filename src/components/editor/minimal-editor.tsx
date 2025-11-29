@@ -17,29 +17,23 @@ export function MinimalEditor({ noteId }: { noteId: string }) {
   const initialValue = (note?.content as Value) || [{ type: 'p', children: [{ text: '' }] }];
   
   const editor = usePlateEditor({
+    id: noteId, // Ensure a new editor instance per note ID
     plugins: minimalPlugins,
     value: initialValue,
   });
 
   // Sync editor value when noteId changes
   useEffect(() => {
-    // Resetting editor value when switching notes is complex with uncontrolled Plate.
-    // usePlateEditor handles initial value, but if we switch noteId, we might want to reset.
-    // However, Plate instances are usually expensive to recreate.
-    // Since we are rendering this in a Sidebar, it persists.
-    // If noteId changes, we should probably update the editor content.
-    // But Plate's `value` prop is initial-only usually unless controlled?
-    // Plate 5+ handles controlled mode better but here we use `onChange` for updates.
-    // Let's assume for "Quick Note" sidebar we might stick to one note or simple switches.
-    // If we need to switch, we can key the component or use editor.reset().
+    // When noteId changes, we need to ensure the editor state reflects the new note.
+    // With the `id` prop in usePlateEditor, Plate handles the instance switch.
+    // No manual reset needed here for uncontrolled mode when keying by noteId.
   }, [noteId]);
 
   if (!note) return <div className="p-4 text-muted-foreground">Loading note...</div>;
 
   return (
       <Plate 
-        key={noteId} // Re-mount on note switch to ensure fresh state
-        editor={editor}
+        editor={editor} // Removed key={noteId} as usePlateEditor({ id }) handles it and is safer against crashes
         onChange={({ value }) => {
            updateNote(noteId, { content: value });
         }}
